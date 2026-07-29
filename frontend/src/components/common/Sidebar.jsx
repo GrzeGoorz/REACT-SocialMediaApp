@@ -5,11 +5,10 @@ import { IoNotifications } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 
-const Sidebar = () => {
+const Sidebar = ({ authUser }) => {
   const queryClient = useQueryClient();
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
@@ -19,7 +18,7 @@ const Sidebar = () => {
         });
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || "Błąd logowania");
+          throw new Error(data.error || "Błąd wylogowania");
         }
       } catch (error) {
         console.error(error);
@@ -33,9 +32,6 @@ const Sidebar = () => {
     onError: () => {
       toast.error("Błąd podczas wylogowywania!");
     },
-  });
-  const { data: authUser } = useQuery({
-    queryKey: ["authUser"],
   });
 
   return (
@@ -94,7 +90,8 @@ const Sidebar = () => {
               <BiLogOut
                 className="w-5 h-5 cursor-pointer"
                 onClick={(e) => {
-                  (e.preventDefault(), logout());
+                  e.preventDefault();
+                  logout();
                 }}
               />
             </div>
