@@ -15,7 +15,7 @@ const Post = ({ post }) => {
   //const { data: authUser } = useQuery({ queryKey: ["authUser"] });
   const queryClient = useQueryClient();
   const authUser = queryClient.getQueryData(["authUser"]);
-  const { mutate: deletePost, isPending } = useMutation({
+  const { mutate: deletePost, isPending: isDeletePending } = useMutation({
     mutationFn: async () => {
       try {
         const response = await fetch(`/api/posts/${post._id}`, {
@@ -38,8 +38,39 @@ const Post = ({ post }) => {
     },
   });
 
+  const { mutate: likePost, isPending: isLikePending } = useMutation({
+    mutationFn: async () => {
+      try {
+        const response = await fetch(`/api/posts/like/${post._id}`, {
+          method: "POST",
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Błąd polubienia posta");
+        }
+        return data;
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+    onSuccess: (updatedLikes) => {
+      console.log("Post liked!");
+      toast.success("Pomyslnie polubiono post!");
+      // funkcja odświeża wszystkie posty podczas polubienia
+      //queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.setQueryData(["posts"], (oldData) => {
+        return oldData.map((p) => {
+          if (p._id === post._id) {
+            return { ...p, likes: updatedLikes };
+          }
+          return p;
+        });
+      });
+    },
+  });
   const postOwner = post.user;
-  const isLiked = false;
+  const isLiked = post.likes.includes(authUser._id);
 
   const isMyPost = authUser._id === post.user._id;
 
@@ -55,7 +86,10 @@ const Post = ({ post }) => {
     e.preventDefault();
   };
 
-  const handleLikePost = () => {};
+  const handleLikePost = () => {
+    if (isLikePending) return;
+    likePost();
+  };
 
   return (
     <>
@@ -82,13 +116,13 @@ const Post = ({ post }) => {
             </span>
             {isMyPost && (
               <span className="flex justify-end flex-1">
-                {!isPending && (
+                {!isDeletePending && (
                   <FaTrash
                     className="cursor-pointer hover:text-red-500"
                     onClick={handleDeletePost}
                   />
                 )}
-                {isPending && <LoadingSpinner size={"sm"} />}
+                {isDeletePending && <LoadingSpinner size={"sm"} />}
               </span>
             )}
           </div>
@@ -167,11 +201,7 @@ const Post = ({ post }) => {
                       onChange={(e) => setComment(e.target.value)}
                     />
                     <button className="btn btn-primary rounded-full btn-sm text-white px-4">
-                      {isCommenting ? (
-                        <span className="loading loading-spinner loading-md"></span>
-                      ) : (
-                        "Post"
-                      )}
+                      {isCommenting ? <LoadingSpinner size={"sm"} /> : "Post"}
                     </button>
                   </form>
                 </div>
@@ -189,10 +219,11 @@ const Post = ({ post }) => {
                 className="flex gap-1 items-center group cursor-pointer"
                 onClick={handleLikePost}
               >
-                {!isLiked && (
+                {isLikePending && <LoadingSpinner size={"sm"} />}
+                {!isLiked && !isLikePending && (
                   <FaRegHeart className="w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500" />
                 )}
-                {isLiked && (
+                {isLiked && !isLikePending && (
                   <FaRegHeart className="w-4 h-4 cursor-pointer text-pink-500 " />
                 )}
 
