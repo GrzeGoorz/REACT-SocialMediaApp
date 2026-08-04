@@ -3,10 +3,11 @@ import { BiRepost } from "react-icons/bi";
 import { FaRegHeart } from "react-icons/fa";
 import { FaRegBookmark } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+import { formatPostDate } from "../../utils/date";
 
 import LoadingSpinner from "./LoadingSpinner";
 
@@ -38,6 +39,7 @@ const Post = ({ post }) => {
     },
   });
 
+  const commentsRef = useRef(null);
   const { mutate: likePost, isPending: isLikePending } = useMutation({
     mutationFn: async () => {
       try {
@@ -69,14 +71,60 @@ const Post = ({ post }) => {
       });
     },
   });
+
+  const { mutate: commentPost, isPending: isCommentPending } = useMutation({
+    mutationFn: async () => {
+      try {
+        const response = await fetch(`/api/posts/comment/${post._id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: comment }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Błąd komentowania posta");
+        }
+        return data;
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+
+    onSuccess: (updatedComments) => {
+      console.log("Post commented!");
+      toast.success("Pomyslnie wysłano komentarz!");
+      // funkcja odświeża wszystkie posty podczas polubienia
+      //queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.setQueryData(["posts"], (oldData) => {
+        return oldData.map((p) => {
+          if (p._id === post._id) {
+            return { ...p, comments: [updatedComments, ...p.comments] };
+          }
+          return p;
+        });
+      });
+      setComment("");
+      // zamykanie komentarza
+      //  document.getElementById(`comments_modal${post._id}`).close();
+      // przewijanie komentarzy w góre:
+      setTimeout(() => {
+        commentsRef.current?.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }, 0);
+    },
+  });
+
   const postOwner = post.user;
   const isLiked = post.likes.includes(authUser._id);
 
   const isMyPost = authUser._id === post.user._id;
 
-  const formattedDate = "1h";
-
-  const isCommenting = false;
+  const formattedDate = formatPostDate(post.createdAt);
 
   const handleDeletePost = () => {
     deletePost();
@@ -84,6 +132,8 @@ const Post = ({ post }) => {
 
   const handlePostComment = (e) => {
     e.preventDefault();
+    if (isCommentPending) return;
+    commentPost();
   };
 
   const handleLikePost = () => {
@@ -140,11 +190,11 @@ const Post = ({ post }) => {
             <div className="flex gap-4 items-center w-2/3 justify-between">
               <div
                 className="flex gap-1 items-center cursor-pointer group"
-                onClick={() =>
+                onClick={() => {
                   document
                     .getElementById("comments_modal" + post._id)
-                    .showModal()
-                }
+                    .showModal();
+                }}
               >
                 <FaRegComment className="w-4 h-4  text-slate-500 group-hover:text-sky-400" />
                 <span className="text-sm text-slate-500 group-hover:text-sky-400">
@@ -158,7 +208,10 @@ const Post = ({ post }) => {
               >
                 <div className="modal-box rounded border border-gray-600">
                   <h3 className="font-bold text-lg mb-4">COMMENTS</h3>
-                  <div className="flex flex-col gap-3 max-h-60 overflow-auto">
+                  <div
+                    ref={commentsRef}
+                    className="flex flex-col gap-3 max-h-60 overflow-auto"
+                  >
                     {post.comments.length === 0 && (
                       <p className="text-sm text-slate-500">
                         No comments yet 🤔 Be the first one 😉
@@ -201,7 +254,11 @@ const Post = ({ post }) => {
                       onChange={(e) => setComment(e.target.value)}
                     />
                     <button className="btn btn-primary rounded-full btn-sm text-white px-4">
-                      {isCommenting ? <LoadingSpinner size={"sm"} /> : "Post"}
+                      {isCommentPending ? (
+                        <LoadingSpinner size={"sm"} />
+                      ) : (
+                        "Post"
+                      )}
                     </button>
                   </form>
                 </div>

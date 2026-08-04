@@ -78,7 +78,11 @@ export const commentOnPosts = async (req, res) => {
 
     await post.save();
 
-    res.status(200).json(post);
+    const updatedPost = await post.populate("comments.user");
+
+    const newComment = updatedPost.comments[updatedPost.comments.length - 1];
+
+    res.status(200).json(newComment);
   } catch (error) {
     console.log("Error in commentOnPosts:", error.message);
     res.status(500).json({ error: "Błąd serwera" });
