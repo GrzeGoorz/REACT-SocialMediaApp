@@ -7,6 +7,7 @@ import userRoutes from "./routes/user.route.js";
 import { v2 as cloudinary } from "cloudinary";
 import postRoutes from "./routes/post.route.js";
 import notificationRoutes from "./routes/notification.route.js";
+import path from "path";
 
 dotenv.config();
 cloudinary.config({
