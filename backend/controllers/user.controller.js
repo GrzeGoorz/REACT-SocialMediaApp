@@ -170,3 +170,43 @@ export const updateUser = async (req, res) => {
     res.status(500).json({ error: "Błąd serwera" });
   }
 };
+
+export const getFollowers = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).populate(
+      "followers",
+      "username fullname profileImg",
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: "Użytkownik nie istnieje" });
+    }
+
+    res.status(200).json(user.followers);
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera" });
+  }
+};
+
+export const getFollowing = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).populate(
+      "following",
+      "username fullname profileImg",
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        error: "Użytkownik nie istnieje",
+      });
+    }
+
+    res.status(200).json(user.following);
+  } catch (error) {
+    console.log("Error in getFollowing:", error.message);
+
+    res.status(500).json({
+      error: "Błąd serwera",
+    });
+  }
+};

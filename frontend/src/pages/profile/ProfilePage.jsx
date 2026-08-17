@@ -16,6 +16,10 @@ import { formatMemberSinceDate } from "../../utils/date";
 import useFollow from "../../hooks/useFollow";
 import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
 import { useAuthUser } from "../../hooks/useAuthUser";
+import {
+  GetFollowers,
+  GetFollowing,
+} from "../../components/common/GetFollowersFollowing";
 
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
@@ -148,9 +152,9 @@ const ProfilePage = () => {
                     className="btn btn-outline rounded-full btn-sm"
                     onClick={() => follow(user?._id)}
                   >
-                    {isPending && "Loading..."}
-                    {!isPending && amIFollowing && "Unfollow"}
-                    {!isPending && !amIFollowing && "Follow"}
+                    {isPending && "......"}
+                    {!isPending && amIFollowing && "Przestań obserwować"}
+                    {!isPending && !amIFollowing && "Obserwuj"}
                   </button>
                 )}
                 {(coverImg || profileImg) && (
@@ -182,12 +186,12 @@ const ProfilePage = () => {
                       <>
                         <FaLink className="w-3 h-3 text-slate-500" />
                         <a
-                          href="https://youtube.com/@asaprogrammer_"
+                          href={user?.link}
                           target="_blank"
                           rel="noreferrer"
                           className="text-sm text-blue-500 hover:underline"
                         >
-                          youtube.com/@asaprogrammer_
+                          {user?.link}
                         </a>
                       </>
                     </div>
@@ -199,27 +203,47 @@ const ProfilePage = () => {
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <div className="flex gap-1 items-center">
+
+                <div className="flex gap-4">
+                  {/* OBSERWUJESZ */}
+                  <div
+                    className="flex gap-1 items-center cursor-pointer hover:underline"
+                    onClick={() =>
+                      document.getElementById("following_modal")?.showModal()
+                    }
+                  >
                     <span className="font-bold text-xs">
-                      {user?.following.length}
+                      {user?.following?.length ?? 0}
                     </span>
+
                     <span className="text-slate-500 text-xs">Obserwujesz</span>
                   </div>
-                  <div className="flex gap-1 items-center">
+
+                  {/* OBSERWUJĄCY */}
+                  <div
+                    className="flex gap-1 items-center cursor-pointer hover:underline"
+                    onClick={() =>
+                      document.getElementById("followers_modal")?.showModal()
+                    }
+                  >
                     <span className="font-bold text-xs">
-                      {user?.followers.length}
+                      {user?.followers?.length ?? 0}
                     </span>
+
                     <span className="text-slate-500 text-xs">Obserwujący</span>
                   </div>
                 </div>
+
+                <GetFollowers userId={user?._id} />
+                <GetFollowing userId={user?._id} />
               </div>
+
               <div className="flex w-full border-b border-gray-700 mt-4">
                 <div
                   className="flex justify-center flex-1 p-3 hover:bg-secondary transition duration-300 relative cursor-pointer"
                   onClick={() => setFeedType("posts")}
                 >
-                  Posts
+                  Wszystkie posty
                   {feedType === "posts" && (
                     <div className="absolute bottom-0 w-10 h-1 rounded-full bg-primary" />
                   )}
@@ -228,7 +252,7 @@ const ProfilePage = () => {
                   className="flex justify-center flex-1 p-3 text-slate-500 hover:bg-secondary transition duration-300 relative cursor-pointer"
                   onClick={() => setFeedType("likes")}
                 >
-                  Likes
+                  Polubione posty
                   {feedType === "likes" && (
                     <div className="absolute bottom-0 w-10  h-1 rounded-full bg-primary" />
                   )}
