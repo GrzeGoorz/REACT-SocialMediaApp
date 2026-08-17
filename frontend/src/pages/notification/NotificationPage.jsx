@@ -57,7 +57,7 @@ const NotificationPage = () => {
     <>
       <div className="flex-[4_4_0] border-l border-r border-gray-700 min-h-screen">
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <p className="font-bold">Notifications</p>
+          <p className="font-bold">Powiadomienia</p>
           <div className="dropdown ">
             <div tabIndex={0} role="button" className="m-1">
               <IoSettingsOutline className="w-4" />
@@ -105,8 +105,8 @@ const NotificationPage = () => {
                     @{notification.from.username}
                   </span>{" "}
                   {notification.type === "follow"
-                    ? "followed you"
-                    : "liked your post"}
+                    ? "zaczął Cię obserwować"
+                    : "polubił Twój post"}
                 </div>
               </Link>
             </div>

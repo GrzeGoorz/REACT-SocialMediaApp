@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-hot-toast";
+import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
 
 const EditProfileModal = ({ authUser }) => {
-  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     fullname: "",
     username: "",
@@ -14,38 +12,7 @@ const EditProfileModal = ({ authUser }) => {
     currentPassword: "",
   });
 
-  const { mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
-    mutationFn: async () => {
-      try {
-        const response = await fetch(`/api/users/update`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || "Błąd aktualizacji profilu");
-        }
-        return data;
-      } catch (error) {
-        // eslint-disable-next-line preserve-caught-error
-        throw new Error(error.message);
-      }
-    },
-    onSuccess: () => {
-      toast.success("Profil został zaktualizowany");
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-        queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
-      ]);
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
+  const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -70,22 +37,22 @@ const EditProfileModal = ({ authUser }) => {
           document.getElementById("edit_profile_modal").showModal()
         }
       >
-        Edit profile
+        Edytuj Profil
       </button>
       <dialog id="edit_profile_modal" className="modal">
         <div className="modal-box border rounded-md border-gray-700 shadow-md">
-          <h3 className="font-bold text-lg my-3">Update Profile</h3>
+          <h3 className="font-bold text-lg my-3">Aktualizuj Profil</h3>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e) => {
               e.preventDefault();
-              updateProfile();
+              updateProfile(formData);
             }}
           >
             <div className="flex flex-wrap gap-2">
               <input
                 type="text"
-                placeholder="Full Name"
+                placeholder="imię i nazwisko"
                 className="flex-1 input border border-gray-700 rounded p-2 input-md"
                 value={formData.fullname}
                 name="fullname"
@@ -93,7 +60,7 @@ const EditProfileModal = ({ authUser }) => {
               />
               <input
                 type="text"
-                placeholder="Username"
+                placeholder="nazwa użytkownika"
                 className="flex-1 input border border-gray-700 rounded p-2 input-md"
                 value={formData.username}
                 name="username"
@@ -103,7 +70,7 @@ const EditProfileModal = ({ authUser }) => {
             <div className="flex flex-wrap gap-2">
               <input
                 type="email"
-                placeholder="Email"
+                placeholder="email"
                 className="flex-1 input border border-gray-700 rounded p-2 input-md"
                 value={formData.email}
                 name="email"
@@ -120,7 +87,7 @@ const EditProfileModal = ({ authUser }) => {
             <div className="flex flex-wrap gap-2">
               <input
                 type="password"
-                placeholder="Current Password"
+                placeholder="obecne hasło"
                 className="flex-1 input border border-gray-700 rounded p-2 input-md"
                 value={formData.currentPassword}
                 name="currentPassword"
@@ -128,7 +95,7 @@ const EditProfileModal = ({ authUser }) => {
               />
               <input
                 type="password"
-                placeholder="New Password"
+                placeholder="nowe hasło"
                 className="flex-1 input border border-gray-700 rounded p-2 input-md"
                 value={formData.newPassword}
                 name="newPassword"
@@ -144,12 +111,12 @@ const EditProfileModal = ({ authUser }) => {
               onChange={handleInputChange}
             />
             <button className="btn btn-primary rounded-full btn-sm text-white">
-              {isUpdatingProfile ? "Updating..." : "Update"}
+              {isUpdatingProfile ? "Aktualizowanie..." : "Aktualizuj"}
             </button>
           </form>
         </div>
         <form method="dialog" className="modal-backdrop">
-          <button className="outline-none">close</button>
+          <button className="outline-none">Zamknij</button>
         </form>
       </dialog>
     </>

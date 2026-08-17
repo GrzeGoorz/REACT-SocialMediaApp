@@ -94,7 +94,6 @@ const Post = ({ post }) => {
     },
 
     onSuccess: (updatedComments) => {
-      console.log("Post commented!");
       toast.success("Pomyslnie wysłano komentarz!");
       // funkcja odświeża wszystkie posty podczas polubienia
       //queryClient.invalidateQueries({ queryKey: ["posts"] });
@@ -207,14 +206,14 @@ const Post = ({ post }) => {
                 className="modal border-none outline-none"
               >
                 <div className="modal-box rounded border border-gray-600">
-                  <h3 className="font-bold text-lg mb-4">COMMENTS</h3>
+                  <h3 className="font-bold text-lg mb-4">Komentarze</h3>
                   <div
                     ref={commentsRef}
                     className="flex flex-col gap-3 max-h-60 overflow-auto"
                   >
                     {post.comments.length === 0 && (
                       <p className="text-sm text-slate-500">
-                        No comments yet 🤔 Be the first one 😉
+                        Brak komentarzy 🤔 Bądz pierwszy! 😉
                       </p>
                     )}
                     {post.comments.map((comment) => (
@@ -249,7 +248,7 @@ const Post = ({ post }) => {
                   >
                     <textarea
                       className="textarea w-full p-1 rounded text-md resize-none border focus:outline-none  border-gray-800"
-                      placeholder="Add a comment..."
+                      placeholder="napisz coś..."
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                     />
@@ -257,13 +256,13 @@ const Post = ({ post }) => {
                       {isCommentPending ? (
                         <LoadingSpinner size={"sm"} />
                       ) : (
-                        "Post"
+                        "Wyślij"
                       )}
                     </button>
                   </form>
                 </div>
                 <form method="dialog" className="modal-backdrop">
-                  <button className="outline-none">close</button>
+                  <button className="outline-none">zamknij</button>
                 </form>
               </dialog>
               <div className="flex gap-1 items-center group cursor-pointer">

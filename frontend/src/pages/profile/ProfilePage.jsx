@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import Posts from "../../components/common/Posts";
@@ -11,29 +11,30 @@ import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { formatMemberSinceDate } from "../../utils/date";
 import useFollow from "../../hooks/useFollow";
-import toast from "react-hot-toast";
+import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
+import { useAuthUser } from "../../hooks/useAuthUser";
 
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
   const [feedType, setFeedType] = useState("posts");
+  const { data: authUser } = useAuthUser();
 
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
   const { username } = useParams();
   const { follow, isPending } = useFollow();
-  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
-  const queryClient = useQueryClient();
+
   const {
     data: user,
     isLoading,
-    refetch,
+
     isRefetching,
   } = useQuery({
-    queryKey: ["userProfile"],
+    queryKey: ["userProfile", username],
     queryFn: async () => {
       try {
         const response = await fetch(`/api/users/profile/${username}`);
@@ -49,40 +50,7 @@ const ProfilePage = () => {
     },
   });
 
-  const { mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
-    mutationFn: async () => {
-      try {
-        const response = await fetch(`/api/users/update`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            coverImg,
-            profileImg,
-          }),
-        });
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || "Błąd aktualizacji profilu");
-        }
-        return data;
-      } catch (error) {
-        // eslint-disable-next-line preserve-caught-error
-        throw new Error(error.message);
-      }
-    },
-    onSuccess: () => {
-      toast.success("Profil został zaktualizowany");
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-        queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
-      ]);
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
 
   const isMyProfile = authUser._id === user?._id;
   const memberSinceDate = formatMemberSinceDate(user?.createdAt);
@@ -99,18 +67,14 @@ const ProfilePage = () => {
       reader.readAsDataURL(file);
     }
   };
-  useEffect(() => {
-    refetch();
-  }, [username, refetch]);
 
-  console.log("USER:", user);
   return (
     <>
       <div className="flex-[4_4_0]  border-r border-gray-700 min-h-screen ">
         {/* HEADER */}
         {(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
         {(!isLoading || !isRefetching) && !user && (
-          <p className="text-center text-lg mt-4">User not found</p>
+          <p className="text-center text-lg mt-4">Użytkownik nie istnieje</p>
         )}
         <div className="flex flex-col">
           {!isLoading && !isRefetching && user && (
@@ -192,9 +156,13 @@ const ProfilePage = () => {
                 {(coverImg || profileImg) && (
                   <button
                     className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2"
-                    onClick={() => updateProfile()}
+                    onClick={async () => {
+                      updateProfile({ coverImg, profileImg });
+                      setCoverImg(null);
+                      setProfileImg(null);
+                    }}
                   >
-                    {isUpdatingProfile ? "Updating..." : "Update"}
+                    {isUpdatingProfile ? "Aktualizowanie..." : "Aktualizuj"}
                   </button>
                 )}
               </div>
@@ -236,13 +204,13 @@ const ProfilePage = () => {
                     <span className="font-bold text-xs">
                       {user?.following.length}
                     </span>
-                    <span className="text-slate-500 text-xs">Following</span>
+                    <span className="text-slate-500 text-xs">Obserwujesz</span>
                   </div>
                   <div className="flex gap-1 items-center">
                     <span className="font-bold text-xs">
                       {user?.followers.length}
                     </span>
-                    <span className="text-slate-500 text-xs">Followers</span>
+                    <span className="text-slate-500 text-xs">Obserwujący</span>
                   </div>
                 </div>
               </div>

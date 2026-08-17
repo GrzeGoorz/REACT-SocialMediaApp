@@ -4,7 +4,9 @@ export const useAuthUser = () => {
   return useQuery({
     queryKey: ["authUser"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", {
+        credentials: "include",
+      });
       const data = await res.json();
 
       if (data.error) return null;

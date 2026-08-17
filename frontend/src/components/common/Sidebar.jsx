@@ -49,7 +49,7 @@ const Sidebar = () => {
               className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
             >
               <MdHomeFilled className="w-8 h-8" />
-              <span className="text-lg hidden md:block">Home</span>
+              <span className="text-lg hidden md:block">Nowości</span>
             </Link>
           </li>
           <li className="flex justify-center md:justify-start">
@@ -58,7 +58,7 @@ const Sidebar = () => {
               className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
             >
               <IoNotifications className="w-6 h-6" />
-              <span className="text-lg hidden md:block">Notifications</span>
+              <span className="text-lg hidden md:block">Powiadomienia</span>
             </Link>
           </li>
 
@@ -68,7 +68,7 @@ const Sidebar = () => {
               className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
             >
               <FaUser className="w-6 h-6" />
-              <span className="text-lg hidden md:block">Profile</span>
+              <span className="text-lg hidden md:block">Profil</span>
             </Link>
           </li>
         </ul>
